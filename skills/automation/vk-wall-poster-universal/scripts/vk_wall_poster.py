@@ -3,9 +3,9 @@
 """
 vk_wall_poster.py — Universal, non-blocking VK wall poster designed for AI Agents (Hermes, Claude Code, etc.).
 
-100% Non-interactive CLI:
+100% Generic & Non-interactive CLI:
 - Never blocks on stdin/input()
-- Instant diagnostics via --check (returns JSON or human-readable status)
+- Instant diagnostics via --check
 - Instant automatic CDP-fallback if community token is missing, invalid, or refused
 - Supports all browsers: Chrome, Yandex, Vivaldi, Firefox, Safari, Edge, Brave, Opera
 """
@@ -333,7 +333,7 @@ def inspect_environment(port: int = 9223, token: Optional[str] = None) -> Dict[s
     env_vars = load_env_vars()
     comm_token = token or env_vars.get("VK_COMMUNITY_TOKEN") or os.environ.get("VK_COMMUNITY_TOKEN")
     user_token = env_vars.get("VK_USER_TOKEN") or os.environ.get("VK_USER_TOKEN")
-    group_id = env_vars.get("VK_GROUP_ID") or os.environ.get("VK_GROUP_ID") or "137821447"
+    group_id = env_vars.get("VK_GROUP_ID") or os.environ.get("VK_GROUP_ID")
 
     browsers = get_browser_catalog()
     cdp_alive = is_port_alive(port)
@@ -351,7 +351,7 @@ def inspect_environment(port: int = 9223, token: Optional[str] = None) -> Dict[s
             pass
 
     token_valid = False
-    if comm_token:
+    if comm_token and group_id:
         try:
             temp_token = DirectTokenTransport(comm_token)
             temp_token.call_api("groups.getById", group_id=group_id)
@@ -474,7 +474,7 @@ class VKWallPublisher:
                     user = user_info[0] if user_info else {}
                     return user.get("id", 0), False, user
                 except Exception:
-                    target = "glfire_streamer"
+                    raise ValueError("Целевое сообщество или страница не указаны. Используйте --target <id_или_имя>")
 
         target_clean = target.strip().rstrip("/").split("/")[-1]
         target_clean = re.sub(r"^(https?://)?(www\.)?(vk\.ru|vk\.com)/", "", target_clean)
@@ -636,7 +636,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("--check", "--status", action="store_true", help="Провести диагностику окружения")
-    parser.add_argument("--target", type=str, default="glfire_streamer", help="Группа или пользователь")
+    parser.add_argument("--target", type=str, help="Группа (screen_name, ID, URL) или ID пользователя")
     parser.add_argument("--text", type=str, help="Текст публикации")
     parser.add_argument("--file", type=str, help="Файл с текстом публикации")
     parser.add_argument("--photo", type=str, nargs="+", help="Изображения (до 10)")
@@ -655,29 +655,24 @@ def main():
         print_diagnostic_report(diag)
         try:
             publisher = VKWallPublisher.auto_create(token=args.token, port=args.port, browser_path=args.browser_path, user_data_dir=args.user_data_dir)
-            owner_id, is_group, meta = publisher.resolve_target(args.target)
-            if is_group:
-                print(f"Целевое сообщество: «{meta.get('name')}» (ID: {meta.get('id')})")
-                print(f"Права на публикацию (can_post): {bool(meta.get('can_post'))} | Admin Level: {meta.get('admin_level')}")
-            else:
-                print(f"Целевой пользователь: «{meta.get('first_name')} {meta.get('last_name')}» (ID: {meta.get('id')})")
+            if args.target or diag.get("group_id"):
+                owner_id, is_group, meta = publisher.resolve_target(args.target)
+                if is_group:
+                    print(f"Целевое сообщество: «{meta.get('name')}» (ID: {meta.get('id')})")
+                    print(f"Права на публикацию (can_post): {bool(meta.get('can_post'))} | Admin Level: {meta.get('admin_level')}")
+                else:
+                    print(f"Целевой пользователь: «{meta.get('first_name')} {meta.get('last_name')}» (ID: {meta.get('id')})")
             print(f"Статус: [+] ПОЛНОСТЬЮ ГОТОВ К РАБОТЕ\n")
             publisher.close()
         except Exception as e:
             print(f"Статус готовности: [!] Требуется настройка ({e})\n")
         return
 
-    user_data = args.user_data_dir
-    if not user_data and platform.system().lower() == "windows":
-        default_profile = os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data Mikhail")
-        if os.path.exists(default_profile):
-            user_data = default_profile
-
     publisher = VKWallPublisher.auto_create(
         token=args.token,
         port=args.port,
         browser_path=args.browser_path,
-        user_data_dir=user_data
+        user_data_dir=args.user_data_dir
     )
 
     try:

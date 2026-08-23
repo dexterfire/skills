@@ -1,9 +1,9 @@
 ---
 name: vk-wall-poster-universal
 description: Универсальный кроссплатформенный скилл публикации новостей, дайджестов и медиа в ВК для AI-агентов. Интерактивный диалог настройки агента с пользователем и авто-fallback на браузер CDP.
-version: 2.3.0
+version: 2.3.1
 category: automation
-author: glfire
+author: dexterfire
 license: MIT
 tags:
   - vk
@@ -26,7 +26,7 @@ tags:
 
 ### Шаг 1. Агент проводит быструю неблокирующую диагностику:
 ```bash
-python scripts/vk_wall_poster.py --check --target <имя_или_id_группы>
+python scripts/vk_wall_poster.py --check --target <target_group_or_user>
 ```
 
 ### Шаг 2. Интерактивный диалог агента с пользователем в чате:
@@ -36,7 +36,7 @@ python scripts/vk_wall_poster.py --check --target <имя_или_id_группы
 2. **Если токенов в `.env` нет и браузер не запущен**:
    - Агент **вежливо спрашивает пользователя в чате**:
      > «Для публикации в ВКонтакте мы можем использовать один из двух вариантов:
-     > 1. **Через ваш открытый браузер (Chrome / Yandex / Vivaldi / Edge)** — не требует ввода ключей, мы просто подхватим вашу сессию (рекомендуется).
+     > 1. **Через ваш открытый браузер (Chrome / Yandex / Vivaldi / Edge / Firefox)** — не требует ввода ключей, мы просто подхватим вашу сессию (рекомендуется).
      > 2. **Через бессрочный API-ключ сообщества (.env)** — я помогу выпустить его в настройках группы.
      > Какой вариант предпочитаете?»
 
@@ -64,26 +64,26 @@ python scripts/vk_wall_poster.py --check --target <имя_или_id_группы
 
 ### 1. Проверка готовности (Dry Run):
 ```bash
-python scripts/vk_wall_poster.py --check --target glfire_streamer
+python scripts/vk_wall_poster.py --check --target your_community_name
 ```
 
 ### 2. Публикация новости:
 ```bash
 # Текст строкой
-python scripts/vk_wall_poster.py --target glfire_streamer --text "🎮 Текст новости..."
+python scripts/vk_wall_poster.py --target your_community_name --text "🎮 Текст новости..."
 
 # Текст из файла
-python scripts/vk_wall_poster.py --target glfire_streamer --file "digest.txt"
+python scripts/vk_wall_poster.py --target your_community_name --file "digest.txt"
 ```
 
 ### 3. Публикация с изображением (обложкой):
 ```bash
-python scripts/vk_wall_poster.py --target glfire_streamer --file "digest.txt" --photo "cover.jpg"
+python scripts/vk_wall_poster.py --target your_community_name --file "digest.txt" --photo "cover.jpg"
 ```
 
 ### 4. Отложенный пост (через 1 час):
 ```bash
-python scripts/vk_wall_poster.py --target glfire_streamer --file "digest.txt" --photo "cover.jpg" --delay 1h
+python scripts/vk_wall_poster.py --target your_community_name --file "digest.txt" --photo "cover.jpg" --delay 1h
 ```
 
 ---
