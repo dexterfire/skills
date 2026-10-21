@@ -43,21 +43,23 @@ scripts/capabilities.py [provider] --json # same, for scripting
 
 The table comes from each model's declared `capabilities` in `opencode models --verbose`. `scripts/test_model.sh <model> <outdir> <image>` checks one model live (text, image, tool use) — run it before trusting a new or free model.
 
-Free Zen models, tested live (2026-10-21; "declared" is from `capabilities.py`):
+Free Zen models, tested live on 2026-10-21. Cells are passes/runs; "declared" image support is from `capabilities.py`.
 
-| model | text | image (declared → live) | tools (live) | notes |
+| model | text | image (declared → live) | tools | use for |
 |---|---|---|---|---|
-| `opencode/glm-5.3-flash-free` | ok, ~6s | yes → ok | ok | Best all-rounder; default pick |
-| `opencode/minimax-m3.1-flash-free` | ok, ~6s | yes → ok | failed | Vision without agentic work |
-| `opencode/nemotron-3.5-super-vl-free` | ok, ~5s | yes → flaky | ok | Read the image right once, empty answer once |
-| `opencode/deepseek-v4.1-flash-free` | timed out | yes → ok | failed | Slow or overloaded |
-| `opencode/nemotron-3-ultra-free` | ok, ~7s | no → says it can't see | ok | Text and tools |
-| `opencode/nemotron-3.5-lightning-free` | ok, ~6s | no → tried to open the file | ok | Text and tools |
-| `opencode/beam-free` | ok, ~9s | no → tried to open the file | ok | Text and tools, 1M context |
-| `opencode/flint-40b-free` | ok, ~47s | no → says it can't see | ok | Slow |
-| `opencode/mimo-v2.6-flash-free` | timed out | yes → empty | ok | Unreliable |
-| `opencode/big-pickle` | timed out | no | timed out | Unreliable |
-| `opencode/longcat-2.5-preview-free` | endpoint unavailable | yes | — | Down at test time |
+| `opencode/glm-5.3-flash-free` | 1/2 | yes → 2/2 | 2/2 | Default: text, vision and agentic work |
+| `opencode/minimax-m3.1-flash-free` | 1/2 | yes → 2/2 | 1/2 | Vision fallback |
+| `opencode/deepseek-v4.1-flash-free` | 1/2 | yes → 2/2 | 0/2 | Vision only; never completes tool work |
+| `opencode/nemotron-3.5-super-vl-free` | 1/2 | yes → 1/3 | 2/2 | Unreliable on images despite the "VL" |
+| `opencode/mimo-v2.6-flash-free` | 1/2 | yes → 0/2 | 2/2 | Text and tools; images come back empty |
+| `opencode/big-pickle` | 1/2 | no | 1/2 | Text and tools |
+| `opencode/nemotron-3-ultra-free` | 1/1 | no → says it can't see | 1/1 | Text and tools |
+| `opencode/nemotron-3.5-lightning-free` | 1/1 | no → tries to open the file | 1/1 | Text and tools |
+| `opencode/beam-free` | 1/1 | no → tries to open the file | 1/1 | Text and tools, 1M context |
+| `opencode/flint-40b-free` | 1/1, ~47s | no → says it can't see | 1/1 | Slow |
+| `opencode/longcat-2.5-preview-free` | 0/2 | yes | 0/2 | Endpoint unavailable |
+
+Every failed text run above was a silent 120-second hang, spread across all models, including the default. On free models, put a `timeout` on every call and treat a hang as a signal to rotate, not as a property of the model. A passing answer takes 5–10 seconds.
 
 Free models are rate-limited and rotate in and out of the catalogue; refresh with `opencode models --refresh`. Paid Zen models (`opencode/gpt-*`, `opencode/gemini-*`, `opencode/claude-*`, …) bill the Zen balance, so use one only when the user asked for it.
 
