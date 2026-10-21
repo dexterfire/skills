@@ -1,0 +1,3 @@
+interface:
+  display_name: "opencode"
+  short_description: "Call non-Claude models through the opencode CLI"
