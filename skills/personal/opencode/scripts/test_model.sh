@@ -13,7 +13,7 @@ t1=$(date +%s)
 # The prompt goes before -f: -f is variadic and would swallow it.
 vis=$(cd "$w" && timeout 150 opencode run -m "$m" "Какое число на картинке и какого цвета рамка? Ответь кратко." -f test.png 2>&1 | clean)
 tool=$(cd "$w" && timeout 150 opencode run --auto -m "$m" "Создай в текущей папке файл ok.txt с содержимым DONE. Больше ничего не делай." 2>&1 | clean)
-[ "$(tr -d '[:space:]' < "$w/ok.txt" 2>/dev/null)" = "DONE" ] && tf=yes || tf=no
+[ "$(tr -d '[:space:]' 2>/dev/null < "$w/ok.txt")" = "DONE" ] && tf=yes || tf=no
 
-python3 -c 'import json,sys; print(json.dumps(dict(zip(["model","text","text_sec","vision","tool_file","tool_out"], sys.argv[1:]), ensure_ascii=False))' \
+python3 -c 'import json,sys; print(json.dumps(dict(zip(["model","text","text_sec","vision","tool_file","tool_out"], sys.argv[1:])), ensure_ascii=False))' \
   "$m" "$txt" "$((t1-t0))" "$vis" "$tf" "$tool" > "$out/$safe.json"
